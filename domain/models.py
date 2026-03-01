@@ -4,7 +4,7 @@ from datetime import date, datetime
 from enum import Enum
 from typing import Dict, List, Optional, Sequence
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 
 class PanelCondition(str, Enum):
@@ -29,6 +29,13 @@ class Panel(BaseModel):
     condition: PanelCondition = PanelCondition.GOOD
     available_from: date
     home_site: Optional[str] = None
+
+    @field_validator("condition", mode="before")
+    @classmethod
+    def normalize_condition(cls, v: object) -> str:
+        if isinstance(v, str) and v.upper() in ("FAIR", "OK", "REPAIRABLE"):
+            return "WORN"
+        return v  # type: ignore[return-value]
 
 
 class Site(BaseModel):
